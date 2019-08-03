@@ -5,7 +5,7 @@ import './index.css';
 class Square extends React.Component {
     render() {
         return (
-            <button className="square" onClick={() => this.props.onClick()}>
+            <button className={this.props.winning ? "square winner" : "square"} onClick={() => this.props.onClick()}>
                 {this.props.value}
             </button>
         );
@@ -14,12 +14,12 @@ class Square extends React.Component {
 
 class Board extends React.Component {
     renderSquare(i, val) {
-        return <Square key={i} value={val} onClick={() => this.props.onClick(i) }/>;
+        let winningSquare = this.props.winningSet && this.props.winningSet.indexOf(i) > -1;
+
+        return <Square key={i} value={val} winning={winningSquare} onClick={() => this.props.onClick(i) }/>;
     }
 
     render() {
-
-        //TODO style wins
 
         let squares = this.props.squares.slice().map((item, idx) =>
             {
@@ -113,25 +113,24 @@ class Game extends React.Component {
 
 function calculateWinner(rows, size) {
 
-    for (let i = 0; i < rows.length; i++) {
-        let row = rows[i];
+    for (let rowNum = 0; rowNum < rows.length; rowNum++) {
+        let row = rows[rowNum];
 
-        for (let j = 0; j < row.length; j++) {
-            let value = row[j];
+        for (let colNum = 0; colNum < row.length; colNum++) {
+            let value = row[colNum];
 
             if (value) {
 
-                let coord = {row: i, col: j};
+                let coord = `${rowNum}-${colNum}`;
 
                 //diagonal check
-                if (i === 0 && i === j) {
-                    console.log('checking diagonal');
+                if (rowNum === 0 && rowNum === colNum) {
                     let tmp = [coord];
 
-                    for (let k = 1; k < size; k++) {
-                        let thisBox = rows[i + k][j + k];
+                    for (let i = 1; i < size; i++) {
+                        let thisBox = rows[rowNum + i][colNum + i];
                         if (thisBox === value) {
-                            tmp.push({row: i + k, col: j + k});
+                            tmp.push(`${rowNum + i}-${colNum + i}`);
 
                             if (tmp.length === size) {
                                 return tmp;
@@ -143,15 +142,13 @@ function calculateWinner(rows, size) {
 
                 }
 
-                //TODO fix
                 // reverse diagonal check
-                if (i === size - 1 && i === j) {
-                    console.log('checking reverse diagonal');
+                if (rowNum === 0 && colNum === size - 1) {
                     let tmp = [coord];
-                    for (let k = 1; k < size; k++) {
-                        let thisBox = rows[i + k][j - k];
+                    for (let i = 1; i < size; i++) {
+                        let thisBox = rows[i][colNum - i];
                         if (thisBox === value) {
-                            tmp.push({row: i + k, col: j - k});
+                            tmp.push(`${i}-${colNum - i}`);
 
                             if (tmp.length === size) {
                                 return tmp;
@@ -163,14 +160,13 @@ function calculateWinner(rows, size) {
                 }
 
                 //row check
-                if (j === 0) {
-                    console.log('checking row');
+                if (colNum === 0) {
                     let tmp = [coord];
 
-                    for (let k = 1; k < size; k++) {
-                        let thisBox = row[k];
+                    for (let i = 1; i < size; i++) {
+                        let thisBox = row[i];
                         if (thisBox === value) {
-                            tmp.push({row: i, col: k});
+                            tmp.push(`${rowNum}-${i}`);
 
                             if (tmp.length === size) {
                                 return tmp;
@@ -182,14 +178,13 @@ function calculateWinner(rows, size) {
                 }
 
                 //column check
-                if (i === 0) {
-                    console.log('checking column');
+                if (rowNum === 0) {
                     let tmp = [coord];
 
-                    for (let k = 1; k < size; k++) {
-                        let thisBox = rows[k][j];
+                    for (let i = 1; i < size; i++) {
+                        let thisBox = rows[i][colNum];
                         if (thisBox === value) {
-                            tmp.push({row: k, col: j});
+                            tmp.push(`${i}-${colNum}`);
 
                             if (tmp.length === size) {
                                 return tmp;
@@ -219,8 +214,5 @@ ReactDOM.render(
 
 
 //TODO
-// Rewrite Board to loop to make the squares instead of hardcoding them.
-// Rewrite calculateWinner
-// When someone wins, highlight the three squares that caused the win.
 // When no one wins, display a message about the result being a draw.
 // Add RESET Button
